@@ -3,12 +3,36 @@ import heapq
 
 #FELLOWS 
 #############################################################################################################
-# Create a minheap of subjects by number of fellows per subject. First item is the subject with least number of tfs 
-# Each object is an int = length of fellows in bucket, a string = subject name, a string = grade level name
-def makeHeap(heap, gradelist, gradename):
-    for subject, fellows in gradelist.items():
-        length = len(fellows)
-        heapq.heappush(heap, (length, subject, gradename))
+
+#sort fellows into buckets of subjects by level of education 
+def addFellow(row):
+    #if lower elementary then iterate over the subjects and place in the lower elementary bucket 
+    subjects = row['subjects'].split(', ')
+    grades = row['grades'].split(', ')
+    for grade in grades: 
+        if grade == 'Lower elementary school (Grades K-2)': 
+            for subject in subjects: 
+                if subject in low_elementary:
+                    ###add TF to the set 
+                    low_elementary[subject].add((-int(tut_count), row['name']))
+        #if higher elementary then iterate over the subjects and place in the higher elementary bucket 
+        if grade == 'Upper elementary school (Grades 3-5)': 
+            for subject in subjects: 
+                if subject in high_elementary:
+                    ###add TF to the set 
+                    high_elementary[subject].add((-int(tut_count), row['name']))
+        #if middle then iterate over the subjects and place in the middle school bucket 
+        if grade == 'Middle school': 
+            for subject in subjects: 
+                if subject in middle:
+                    ###add TF to the set 
+                    middle[subject].add((-int(tut_count), row['name']))
+        #if high then iterate over the subjects and place in the high school bucket 
+        if grade == 'High school': 
+            for subject in subjects: 
+                if subject in high:
+                    ###add TF to the set 
+                    high[subject].add((-int(tut_count), row['name']))
 
 # remove given fellow from all subject buckets 
 def removeFellow(fellow): 
@@ -37,7 +61,7 @@ def removeFellow(fellow):
                 if subject in high:
                     high[subject].remove((-1, fellow))
 
-# update capacity for all subject buckets for given fellow
+# update tutee capacity for all subject buckets for given fellow to capacity 
 def updateCapacity(fellow, capacity):
     fellow_info = fellows[fellow]
     subjects = fellow_info['subjects'].split(', ')
@@ -72,12 +96,11 @@ def updateCapacity(fellow, capacity):
 # one dictonary to hold each fellow as key and their row as the value 
 fellows = {}
 
-# track fellows and their capacity and their matches, initialize to total capacity.
-# Key is the row dictionary given as input, the value is capacity + list of tutees 
+# track fellows and their tutee capacity and their matches, initialize to total capacity.
+# Key is the fellow name as string, the value is a list which is capacity + list of tutees 
 matches = {}
 
-
-#hash of all elementary subjects as key and value is list of fellows
+#hash of all elementary subjects as key and value is list of fellows that can teach the subject
 low_elementary = {"English Reading": set([]), "English Writing": set([]), "Math (up to Algebra)": set([]), 
 "History": set([]), "Computer Science": set([]), "Spanish": set([]), "French": set([]), "Chinese": set([])}
 
@@ -87,7 +110,9 @@ high_elementary = {"English Reading": set([]), "English Writing": set([]), "Math
 #hash of all middle school subjects as key and list is fellows 
 middle = {"English Reading": set([]), "English Writing": set([]), "Math (up to Algebra)": set([]), 
 "History": set([]), "Biology": set([]), "Chemistry": set([]), "Physics": set([]), "Computer Science": set([]), 
-"Spanish": set([]), "French": set([]), "Chinese": set([]), "Geometry": set([])}
+"Spanish": set([]), "French": set([]), "Chinese": set([]), "Geometry": set([]), "SAT Reading": set([]),
+"SAT Math": set([]), "SAT Writing": set([]), "ACT English": set([]), "ACT Math": set([]), "ACT Reading": set([]),
+"ACT Science": set([]), "ACT Writing": set([])}
 
 #hash of all elementary subjects as key and list is fellows 
 high = {"English Reading": set([]), "English Writing": set([]), "Math (up to Algebra)": set([]), "Geometry": set([]), 
@@ -96,56 +121,33 @@ high = {"English Reading": set([]), "English Writing": set([]), "Math (up to Alg
 "SAT Math": set([]), "SAT Writing": set([]), "ACT English": set([]), "ACT Math": set([]), "ACT Reading": set([]),
 "ACT Science": set([]), "ACT Writing": set([]), "College Applications": set([])}
 
-#open fellows csv 
+#open fellows csv and parse information
 with open('fellows.csv', mode='r') as fellowcsv:
     fellowreader = csv.DictReader(fellowcsv)
     for row in fellowreader:
         # populate the fellows dictionary
-        ######print(row['name'], type(row['name']))
         tut_count = row['tut_count']
         if tut_count == 'More than 3':
             tut_count = 4
         fellows[row['name']] = row
         matches[row['name']] = [tut_count]
+        #add the fellow to the subject buckets by grade level based on the subjects they indicate 
+        addFellow(row)
+        
 
-        #sort fellows into buckets of teaching subject by level of education 
-        #if lower elementary then iterate over the subjects and place in the lower elementary bucket 
-        subjects = row['subjects'].split(', ')
-        grades = row['grades'].split(', ')
-        for grade in grades: 
-            if grade == 'Lower elementary school (Grades K-2)': 
-                for subject in subjects: 
-                    if subject in low_elementary:
-                        ###add TF to the set 
-                        low_elementary[subject].add((-int(tut_count), row['name']))
-                        #subj_count_low_elem[subject] += 1
-            #if higher elementary then iterate over the subjects and place in the higher elementary bucket 
-            if grade == 'Upper elementary school (Grades 3-5)': 
-                for subject in subjects: 
-                    if subject in high_elementary:
-                        ###add TF to the set 
-                        high_elementary[subject].add((-int(tut_count), row['name']))
-                        #subj_count_low_elem[subject] += 1
-            #if middle then iterate over the subjects and place in the middle school bucket 
-            if grade == 'Middle school': 
-                for subject in subjects: 
-                    if subject in middle:
-                        ###add TF to the set 
-                        middle[subject].add((-int(tut_count), row['name']))
-            #if high then iterate over the subjects and place in the high school bucket 
-            if grade == 'High school': 
-                for subject in subjects: 
-                    if subject in high:
-                        ###add TF to the set 
-                        high[subject].add((-int(tut_count), row['name']))
+# FELLOWS HAVE BEEN PARSED
+# ORDER THE SUBJECT BUCKETS TO PREPARE FOR MATCHING
+####################################################################################################
 
+# Create a minheap of subjects ordered by number of fellows per subject. 
+# First item = the subject with least number of tfs 
+# Each object is a tuple: int = length of fellows in bucket, string = subject name, string = grade level name
+def makeHeap(heap, gradelist, gradename):
+    for subject, fellows in gradelist.items():
+        length = len(fellows)
+        heapq.heappush(heap, (length, subject, gradename))
 
-###PRINT#########################################################################################
-#########print(fellows['Allison Zhao'])
-#print(high)
-#print(matches)
-
-# add all the subject counts together into a new list and heapify it so least available matched first
+# add all the subject counts together into a new list and heapify it so subject with least available fellows is matched first
 subj_counts = []
 makeHeap(subj_counts, low_elementary, "Lower elementary")
 makeHeap(subj_counts, high_elementary, "Higher elementary")
@@ -153,14 +155,8 @@ makeHeap(subj_counts, middle, "Middle")
 makeHeap(subj_counts, high, "High")
 
 
-###PRINT#########################################################################################
-#print(subj_counts)
-#print(len(subj_counts))
-
-
-
+# TUTEES PARSING
 ######################################TUTEES######################################################
-# TUTEES 
 
 #create a dictionary that holds each tutee as a key and their row as the value
 tutees = {}
@@ -169,13 +165,12 @@ tutees = {}
 unmatched = set([])
 
 #create a list of buckets, each bucket represents a subject and the list of tutees is the values 
-#hash of all elementary subjects as key and value is list of fellows
 low_elementary_tutee = {}
 high_elementary_tutee = {}
 middle_tutee = {}
 high_tutee = {}
 
-#clear out the buckets for running the matching for the each choice of subject
+#clear out the buckets for every subject for every grade level
 def clearTuteeBuckets(low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee):
     low_elementary_tutee['English Reading'] = []
     low_elementary_tutee['English Writing'] = []
@@ -210,6 +205,14 @@ def clearTuteeBuckets(low_elementary_tutee, high_elementary_tutee, middle_tutee,
     middle_tutee['Physics'] = []
     middle_tutee['Geometry'] = []
     middle_tutee['Other'] = []
+    middle_tutee['SAT Reading'] = []
+    middle_tutee['SAT Math'] = []
+    middle_tutee['SAT Writing'] = []
+    middle_tutee['ACT Math'] = []
+    middle_tutee['ACT Reading'] = []
+    middle_tutee['ACT English'] = []
+    middle_tutee['ACT Writing'] = []
+    middle_tutee['ACT Science'] = []
 
     high_tutee['English Reading'] = []
     high_tutee['English Writing'] = []
@@ -237,6 +240,8 @@ def clearTuteeBuckets(low_elementary_tutee, high_elementary_tutee, middle_tutee,
     high_tutee['ACT'] = []
     high_tutee['Other'] = []
 
+# given the row that contains all the information for a tutee and the #choice of subject
+# output the subject and evaluation for that subject
 def TuteeInfoByChoice(info, choice):
     if choice == 1:
         subject = info['Subject1']
@@ -252,15 +257,10 @@ def TuteeInfoByChoice(info, choice):
         return subject, evaluation
 
 
-# MAKE THIS A FUNCTION where you dictate choice 1, 2, or 3 as parameter 
-    ## run for first shoice subject 
-    ## make UNMATCHED dictionary into a list 
-    ## for every tutee in unmatched, 
-    # if kinder - 2 then put first choice subject in the lower elem bucket AS MINHEAP BY THEIR EVAL SCORE
-    # if 3 -5 put first choice in higher elem AS MINHEAP BY THEIR EVAL SCORE
-    # if middle put in middle AS MINHEAP BY THEIR EVAL SCORE
-    # if high put in high AS MINHEAP BY THEIR EVAL SCORE
+# given the set of unmatched tutees, put them into the proper subject level buckets by grade level 
+# insert a tuple = the evaluation for the subject with tutee name
 def makeTuteeBucket(unmatched, choice, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, tutees):
+
     unmatched_list = list(unmatched)
     for tutee in unmatched_list:
         info = tutees[tutee]    
@@ -280,8 +280,20 @@ def makeTuteeBucket(unmatched, choice, low_elementary_tutee, high_elementary_tut
 
     return unmatched_list
 
+#open tutees csv and parse  
+with open('tutees.csv', mode='r') as tuteecsv:
+    tuteereader = csv.DictReader(tuteecsv)
+    for row in tuteereader:
+        if row['Student'] == "":
+            continue
+        tutees[row['Student']] = row
+        unmatched.add(row['Student'])
+
 #MATCHING
-###############################################################################################################
+#########################################################################################################################
+
+# update the minheap subj_counts which tracks number of fellows available per subject 
+# first item = subject with minimum number of fellows available 
 def updateSubjectCounts(subj_counts, low_elementary, high_elementary, middle, high):
     makeHeap(subj_counts, low_elementary, "Lower elementary")
     makeHeap(subj_counts, high_elementary, "Higher elementary")
@@ -289,8 +301,10 @@ def updateSubjectCounts(subj_counts, low_elementary, high_elementary, middle, hi
     makeHeap(subj_counts, high, "High")
     return subj_counts
 
+# called by checkMatchCriterea 
+# perform the necessary actions per a tutee and fellow when they are paired
+# remove tutee from unmatched list and update fellow capacities
 def makeMatch(multiple, unmatched, tutee, matches, fellow, choice, tut_count, fellow_heap):
-    #print(unmatched)
     unmatched.remove(tutee) #take the tutee out of the unmatched list
     matches[fellow].append((tutee, choice)) #put in matches list with choice number
     tut_count += 1 #lower fellows capacity
@@ -300,18 +314,22 @@ def makeMatch(multiple, unmatched, tutee, matches, fellow, choice, tut_count, fe
         heapq.heappush(fellow_heap, (tut_count,fellow)) 
         updateCapacity(fellow, tut_count)
 
+# return the platform and availability of tutee
 def getTuteeInfo(tutee):
     t_info = tutees[tutee]
     tutee_platform = t_info['Platform'].split(', ')
     tutee_availability = t_info['Availability'].split(', ')
     return tutee_platform, tutee_availability
 
+# return the platform and availability of the fellow
 def getFellowInfo(fellow):
     f_info = fellows[fellow]
     fellow_platform = set(f_info['platform'].split(', '))
     fellow_availability = set(f_info['availability'].split(', '))
     return fellow_platform, fellow_availability
 
+# called by matchGrades
+# check if the platform and availability match between a tutee and fellow
 def checkMatchCriterea(multiple, tutee_platform, fellow_platform, tutee_availability, fellow_availability, unmatched, tutee, matches, fellow, choice, tut_count, fellow_heap):
     for platform in tutee_platform:
         if platform in fellow_platform:
@@ -321,6 +339,9 @@ def checkMatchCriterea(multiple, tutee_platform, fellow_platform, tutee_availabi
                     return True            
     return False
 
+# called by the main match function 
+# given a list of fellows and list of tutees per a specific subject and the choice
+# iterate through the tutees and fellows to find matches
 def matchGrades(multiple, fellow_candidates, tutee_candidates, choice):
     fellow_heap = list(fellow_candidates)
     heapq.heapify(fellow_heap)
@@ -348,22 +369,11 @@ def matchGrades(multiple, fellow_candidates, tutee_candidates, choice):
             if matched: 
                 break  
 
-############MATCHING
+############MATCHING FUNCTION
 #match the smallest amount of TF capacity subjects first
 #iterate the minheap by matching the subjects with the least number of fellows available first 
-    # if zero then skip the subject 
-    # MAKE THE FELLOWS PER A SUBJECT A MAXHEAP by the number of tutees they're willing to take so that 
-        #the tutees with the min eval scores are matched to the fellows with the highest number of willing to takes
-    #check for platform match (MUST MATCH)
-    #check for availability match (MUST MATCH)
-    #check for timezone match  (soft match)
-    #match found then take tutee out of UNMATCHED dictionary 
-    #pop the tutee from the list (not necissary)
-    #add the match to matches AND mark this match as a first choice (use a tuple when adding the match)
-    #minus one for fellow capacity 
-    #if fellow capacity at zero, remove from all of the fellows buckets that they are in 
-    #repeat process with the next subject by lowest fellow number
-
+#fellows per a subject are ordered by highest capacity
+#the tutees with the min eval scores are matched to the fellows with the highest capacity first
 def match(multiple, choice, subj_counts, unmatched, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, low_elementary, high_elementary, middle, high):
     #update subject bucket counts (number of fellows) 
     if choice != 1: 
@@ -409,44 +419,36 @@ def match(multiple, choice, subj_counts, unmatched, low_elementary_tutee, high_e
             fellow_candidates = high[subject]
             matchGrades(multiple, fellow_candidates, tutee_candidates, choice)
 
-                    
 
-#open tutees csv 
-with open('tutees.csv', mode='r') as tuteecsv:
-    tuteereader = csv.DictReader(tuteecsv)
-    for row in tuteereader:
-        if row['Student'] == "":
-            continue
-        tutees[row['Student']] = row
-        unmatched.add(row['Student'])
+# RUN THE ALGORITHM
+#########################################################################################################################
 
-
-
-#run makeTuteeBucket for first choice 
-#run matching function 
-#if unmatched not empty run for second choice ... etc. 
-
+#run matching for first choice by trying to match each fellow to one tutee first 
 clearTuteeBuckets(low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee)
 unmatched_list = makeTuteeBucket(unmatched, 1, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, tutees)
 print("BREAK HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
 match(False, 1, subj_counts, unmatched, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, low_elementary, high_elementary, middle, high)
 
+#run matching for first choice allowing multiple tutees per fellow
 clearTuteeBuckets(low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee)
 unmatched_list = makeTuteeBucket(unmatched, 1, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, tutees)
 print("BREAK HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
 match(True, 1, subj_counts, unmatched, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, low_elementary, high_elementary, middle, high)
 
+#run matching for second choice
 print("BREAK HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE TWICEEEEEEEEEEEEEEEEEEEE")
 clearTuteeBuckets(low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee)
 unmatched_list = makeTuteeBucket(unmatched, 2, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, tutees)
 match(True, 2, subj_counts, unmatched, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, low_elementary, high_elementary, middle, high)
 
-
+#run matching for third choice
 print("BREAK HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE TWICEEEEEEEEEEEEEEEEEEEE")
 clearTuteeBuckets(low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee)
 unmatched_list = makeTuteeBucket(unmatched, 3, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, tutees)
 match(True, 3, subj_counts, unmatched, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, low_elementary, high_elementary, middle, high)
 
+# PRINT TO TERMINAL
+#########################################################################################################################
 for key, value in matches.items():
     print(key, value)
 print(unmatched)
@@ -454,11 +456,12 @@ for key, value in matches.items():
     if len(value) == 1:
         print(key)
 
+# WRITE RESULTS OF ALGORITHM TO CSV
+#########################################################################################################################
 #field names 
 fields = ['Fellow', 'Tutee', 'Choice', 'Grade', 'Subject', 'Evaluation', 'Fellow college', 'Fellow Graduation', 'Fellow Platform', 'Fellow Availbility', 'Fellow Grades', 'Fellow Subjects', 'Fellow Tutee Count']
 filename = "matches.csv"
 
-print("BREAK HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEE TWICEEEEEEEEEEEEEEEEEEEE AFTERRRRRRRRRRRRRRRRR HEREEEEEEEE")
 #writing to file
 with open(filename, 'w') as csvfile:
     csvwriter = csv.writer(csvfile)
@@ -476,27 +479,14 @@ with open(filename, 'w') as csvfile:
             csvwriter.writerow(row)
 
 ############## TO DO
-##Write it back into a csv file
 ##Match returning tfs to their old tutee first 
 # (SP) david spanish tutees 
 # match spanish tutees first 
 # match language necessary tutees first 
 # change
 # if a tutee puts 'other'
-# if a tutee wants SAT, what is the subject 
-
-#middle school student that needs SAT math help
-"""File "matching.py", line 441, in <module>
-    unmatched_list = makeTuteeBucket(unmatched, 2, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, tutees)
-  File "matching.py", line 277, in makeTuteeBucket
-    heapq.heappush(middle_tutee[subject], (int(evaluation), tutee))
-KeyError: 'SAT Math'"""
-
-#MAKING SURE ALL TFS HAVE ONE STUDENT FIRST ---> perhaps run first choice once by matching all tfs to a kid (separate out into a list)
-#---> then match all the kids who didn't get matched the first time first choice again
-#---> essentially, just run the algo twice for first choice, one where tfs that have multiple students get put back and one where they don't
-
-
+# if a tutee wants SAT, what is the subject formatting 
+# flock algorithm
 
 #####################################################################Considerations FOR LATER
 
@@ -507,21 +497,6 @@ KeyError: 'SAT Math'"""
 ###right now after a fellow is matched, we lower the capacity and if the capacity is not zero then we push it back 
     ###however, it might go to the end of the maxheap since the capacity was lowered
     ###instead it may make sense to match that person immediately again so that they can teach the same subject
- 
-
-
-
-# for tutees: try to match tutees with least supply subjects first based on their first subject requested
-#       (match people with lowest performance score first ?)
-# try to match all tutees based on their first subject of need
-# repeat process with second choice subject for tutees
-#
-#
-# match the 3 or lowers with tutors that have more bandwidth to teach 
-#
-#
-#
-#
 
 #####buckets for fellows 
 
