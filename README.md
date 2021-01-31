@@ -1,20 +1,23 @@
 # hatch-matching
 
-Hatch matching algorithm
-
-
-Matching Algorithm: 
+## Matching Algorithm: 
 
 
 ```diff
-- text in
--
-+ text in green
-! text in orange
-# text in gray
+- Given information: 
+-      TUTEE CSV) CSV file where each row contains data for one tutee including Name, Grade in school, Platforms for tutoring, Weekly Availability, First Choice Subject, Evaluation for first choice subject, Second Choice Subject, Evaluation for second choice, Third Choice Subject, Evaluation for Third Choice 
+-      FELLOW CSV) CSV file where each row contains data for one fellow including Name, Grade levels willing to tutor, Platforms for tutoring, Weekly Availability, Subjects for tutoring
+
+
+! 1) Parse the FELLOW CSV
+! 2) Create subj_heap a minheap 
+! 3) Parse the TUTEE CSV
+! 4) Do the matching for non-multiples allowed and first choice subject 
+! 5) Do the matching for multiples allowed first, second, third subject
+! 6) Write the tutee-fellow pairings result to a new csv file 
+
 @@ text in purple (and bold)@@
 ```
-<p class="text-right" style="color:#808080;">
 
 
 ## Hatch Matching API: 
@@ -83,5 +86,5 @@ Tterate through the list of tutees and fellow candidates to find matches
 + def match(multiple, choice, subj_counts, unmatched, low_elementary_tutee, high_elementary_tutee, middle_tutee, high_tutee, low_elementary, high_elementary, middle, high)
 Creates matched for tutee-fellow pairs given dictionaries containing tutees and fellows per each grade level. 
 Perform matching by the subjecs with the smallest amount of fellow capacity first
-#Tutees with the lowest subject evaluation scores are matched to the fellows with the highest capacity
+Tutees with the lowest subject evaluation scores are matched to the fellows with the highest capacity
 ```
