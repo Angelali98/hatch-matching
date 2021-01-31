@@ -9,7 +9,7 @@
 -           Each row contains data for one tutee including 
 -                  Name, Grade in school, Platforms for tutoring, 
 -                  Weekly Availability, First Choice Subject, 
-                   Evaluation for first choice subject, Second Choice Subject, 
+-                  Evaluation for first choice subject, Second Choice Subject, 
 -                  Evaluation for second choice, Third Choice Subject, Evaluation for Third Choice 
 -      FELLOW CSV 
 -           Each row contains data for one fellow including 
