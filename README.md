@@ -5,15 +5,31 @@
 
 ```diff
 - Given information: 
--      TUTEE CSV) CSV file where each row contains data for one tutee including Name, Grade in school, Platforms for tutoring, Weekly Availability, First Choice Subject, Evaluation for first choice subject, Second Choice Subject, Evaluation for second choice, Third Choice Subject, Evaluation for Third Choice 
--      FELLOW CSV) CSV file where each row contains data for one fellow including Name, Grade levels willing to tutor, Platforms for tutoring, Weekly Availability, Subjects for tutoring
+-      TUTEE CSV
+-           CSV file where each row contains data for one tutee including Name, Grade in school, Platforms for tutoring, 
+-           Weekly Availability, First Choice Subject, Evaluation for first choice subject, Second Choice Subject, 
+-           Evaluation for second choice, Third Choice Subject, Evaluation for Third Choice 
+-      FELLOW CSV 
+-           CSV file where each row contains data for one fellow including Name, Grade levels willing to tutor, 
+-           Platforms for tutoring, Weekly Availability, Subjects for tutoring
 
 
-! 1) Parse the FELLOW CSV
-! 2) Create subj_heap a minheap 
-! 3) Parse the TUTEE CSV
-! 4) Do the matching for non-multiples allowed and first choice subject 
-! 5) Do the matching for multiples allowed first, second, third subject
+! 1) Parse the FELLOW CSV. Create dictionaries for each grade level: lower elementary, high elementary, middle, and high. 
+!    Each dictionary contains keys that are the names of subjects. The value per each key is a set of fellows that can tutor the subject.
+!    For each fellow, in the CSV, add the fellow to all subjects that they can tutor by grade level willing to tutor. 
+! 2) Create a minheap. Items are subjects by grade level (i.e. lower-elementary-english)
+!    The minheap is ordered by the number of fellows available to tutor that particular subject. 
+!    First item is the subject with least number of fellows available. 
+! 3) Parse the TUTEE CSV. Create dictionaries for each grade level: lower elementary, high elementary, middle, and high. 
+!    Each dictionary contains keys that are the names of subjects. The value per each key is a list of tutees that requested help for that subject.
+!    At the beginning of each matching process, a first, second, or third choice of subject is specified.
+! 4) Do the matching for non-multiples allowed and first choice subject.
+!    Non-multiples allowed means that the algorithm attempts to assign one tutee to each fellow first. 
+!    Iterate through the minheap created in step 2
+!    Per each subject popped from the minheap, attempt to create tutee-fellow pairings based on the following criterea:
+!    The availability and platform for the fellow and tutee must match 
+!    The fellows with the largest capacities are matched to the tutees with the lowest evaluation scores 
+! 5) Do the matching allowing multiple tutees per a fellow for first, second, third choice subject
 ! 6) Write the tutee-fellow pairings result to a new csv file 
 
 @@ text in purple (and bold)@@
