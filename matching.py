@@ -478,27 +478,7 @@ with open(filename, 'w') as csvfile:
             row = [fellow, tutee, choice, grade, subject, evaluation, fellow_info['college'], fellow_info['graduation'], fellow_info['platform'], fellow_info['availability'], fellow_info['grades'], fellow_info['subjects'], fellow_info['tut_count']]
             csvwriter.writerow(row)
 
-############## TO DO
-##Match returning tfs to their old tutee first 
-# (SP) david spanish tutees 
-# match spanish tutees first 
-# match language necessary tutees first 
-# change
-# if a tutee puts 'other'
-# if a tutee wants SAT, what is the subject formatting 
-# flock algorithm
 
-#####################################################################Considerations FOR LATER
-
-#if a tutee is a 1 on the eval scale and a tutor was taken then try 2nd choice **** manually fix this later ****
-#rank tutees to be at head of list who have the lowest score on performance in their subject 
-#MATCH ALL THREE OR LESS FIRST
-#tiebreak when two subjects have the same number of tutors available 
-###right now after a fellow is matched, we lower the capacity and if the capacity is not zero then we push it back 
-    ###however, it might go to the end of the maxheap since the capacity was lowered
-    ###instead it may make sense to match that person immediately again so that they can teach the same subject
-
-#####buckets for fellows 
 
 """
 # track number of fellows in each subject bucket for low elementary 
