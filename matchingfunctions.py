@@ -4,8 +4,6 @@ import heapq
 #FELLOWS 
 #############################################################################################################
 
-def test(x):
-    return x+2
 #sort fellows into buckets of subjects by level of education 
 def addFellow(row, tut_count, low_elementary, high_elementary, middle, high):
     #if lower elementary then iterate over the subjects and place in the lower elementary bucket 
